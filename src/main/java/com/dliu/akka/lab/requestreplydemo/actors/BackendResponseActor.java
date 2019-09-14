@@ -4,8 +4,11 @@ import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.PoisonPill;
 import akka.actor.Props;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
 
 public class BackendResponseActor extends AbstractActor {
+    LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
 
     private final ActorRef backendActor;
     private final ActorRef replyTo;
@@ -28,10 +31,13 @@ public class BackendResponseActor extends AbstractActor {
     }
 
     private void handleExecuteCommandCmd(BackendProtocol.ExecuteCommandCmd cmd) {
-        backendActor.forward(cmd, getContext());
+
+        log.debug("telling backend: {}", cmd);
+        backendActor.tell(cmd, self());
 
         getContext().become(receiveBuilder()
                 .match(BackendProtocol.ExecuteCommandResponse.class, response -> {
+                    log.debug("replying to reqeust issuer: {}", response);
                     replyTo.tell(response, getSelf());
                     getSelf().tell(PoisonPill.getInstance(), ActorRef.noSender());
                 })

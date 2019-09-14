@@ -26,6 +26,14 @@ public class BackendProtocol {
         public int hashCode() {
             return Objects.hash(correlationId, command);
         }
+
+        @Override
+        public String toString() {
+            return "ExecuteCommandCmd{" +
+                    "correlationId=" + correlationId +
+                    ", command='" + command + '\'' +
+                    '}';
+        }
     }
 
     public static class ExecuteCommandResponse {
