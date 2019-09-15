@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class RequestReplyIntegrationTest {
-    private static final String MAX_ASSERT_WAITING_IN_SECONDS_CONFIG = "max_assert_waiting_in_seconds";
+    private static final String MAX_ASSERT_WAITING_IN_MILLISECONDS_CONFIG = "max_assert_waiting_in_milliseconds";
     private static final String NUMBER_OF_REQUESTS_CONFIG = "number_of_requests";
     private static ActorSystem system;
     private static Config config;
@@ -91,7 +91,7 @@ public class RequestReplyIntegrationTest {
         System.out.println("all expected responses received" );
 
 
-        Thread.sleep(config.getInt(MAX_ASSERT_WAITING_IN_SECONDS_CONFIG));
+        Thread.sleep(config.getInt(MAX_ASSERT_WAITING_IN_MILLISECONDS_CONFIG));
     }
 
     private int getNumberOfRequestsConfig() {
