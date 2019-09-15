@@ -7,27 +7,34 @@ import com.dliu.akka.lab.requestreplydemo.actors.BackendEchoActor;
 import com.dliu.akka.lab.requestreplydemo.actors.BackendProtocol;
 import com.dliu.akka.lab.requestreplydemo.actors.BackendRouterActor;
 import com.dliu.akka.test.utils.Faker;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import kamon.Kamon;
+import org.junit.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class RequestReplyIntegrationTest {
-    public static final int NUMBER_OF_REQUESTS = 100000;
-    public static final long MAX_ASSERT_WAITING_IN_SECONDS = 30000L;
-    private ActorSystem system;
+    private static final String MAX_ASSERT_WAITING_IN_SECONDS_CONFIG = "max_assert_waiting_in_seconds";
+    private static final String NUMBER_OF_REQUESTS_CONFIG = "number_of_requests";
+    private static ActorSystem system;
+    private static Config config;
 
-    @Before
-    public void setUp() throws Exception {
+
+    @BeforeClass
+    public static void setupClass() {
+        Kamon.init();
         system = ActorSystem.create("integration-system");
+        config = ConfigFactory.load().getConfig("integration");
     }
 
-    @After
-    public void tearDown() throws Exception {
+
+    @AfterClass
+    public static void teardownClass() throws Exception {
         system.terminate();
+        system = null;
     }
 
     @Test
@@ -61,7 +68,7 @@ public class RequestReplyIntegrationTest {
         List<TestKit>  probes = new ArrayList<>();
         List<BackendProtocol.ExecuteCommandCmd> cmds = new ArrayList<>();
         List<BackendProtocol.ExecuteCommandResponse> expectedResponses = new ArrayList<>();
-        for (int i = 0; i < NUMBER_OF_REQUESTS; i++) {
+        for (int i = 0; i < getNumberOfRequestsConfig(); i++) {
             probes.add(new TestKit(system));
             BackendProtocol.ExecuteCommandCmd cmd = createExecuteCommandCmd(i);
             cmds.add(cmd);
@@ -70,7 +77,7 @@ public class RequestReplyIntegrationTest {
 
         System.out.println("done setup");
         // Execute
-        for (int i = 0; i < NUMBER_OF_REQUESTS; i++) {
+        for (int i = 0; i < getNumberOfRequestsConfig(); i++) {
             System.out.println("sending request: " + cmds.get(i));
             backendRouter.tell(cmds.get(i), probes.get(i).getRef());
         }
@@ -78,13 +85,17 @@ public class RequestReplyIntegrationTest {
         System.out.println("sent all messages" );
 
         // Assert
-        for (int i = 0; i < NUMBER_OF_REQUESTS; i++) {
+        for (int i = 0; i < getNumberOfRequestsConfig(); i++) {
             probes.get(i).expectMsg(expectedResponses.get(i));
         }
         System.out.println("all expected responses received" );
 
 
-        Thread.sleep(MAX_ASSERT_WAITING_IN_SECONDS);
+        Thread.sleep(config.getInt(MAX_ASSERT_WAITING_IN_SECONDS_CONFIG));
+    }
+
+    private int getNumberOfRequestsConfig() {
+        return config.getInt(NUMBER_OF_REQUESTS_CONFIG);
     }
 
     private BackendProtocol.ExecuteCommandResponse createExpectedExecuteCommandResponse(BackendProtocol.ExecuteCommandCmd cmd) {
