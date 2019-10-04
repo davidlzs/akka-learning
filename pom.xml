@@ -9,10 +9,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven-compiler.target>1.8</maven-compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <akka.version>2.5.23</akka.version>
         <akka.http.version>10.1.9</akka.http.version>
+
+        <akka.grpc.version>0.7.1</akka.grpc.version>
+        <grpc.version>1.22.1</grpc.version>
     </properties>
 
     <dependencies>
@@ -81,18 +86,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-testkit_2.12</artifactId>
-            <version>${akka.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>io.kamon</groupId>
             <artifactId>kamon-bundle_2.12</artifactId>
             <version>2.0.1</version>
@@ -103,6 +96,12 @@
             <artifactId>kamon-prometheus_2.12</artifactId>
             <version>2.0.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.lightbend.akka.grpc</groupId>
+            <artifactId>akka-grpc-runtime_2.12</artifactId>
+            <version>${akka.grpc.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -112,9 +111,21 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.3.2</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven-compiler.target}</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.lightbend.akka.grpc</groupId>
+                <artifactId>akka-grpc-maven-plugin</artifactId>
+                <version>${akka.grpc.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
