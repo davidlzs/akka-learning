@@ -61,6 +61,7 @@ public class GreeterServiceImpl implements GreeterService {
 
     @Override
     public Source<HelloReply, NotUsed> streamHellos(Source<HelloRequest, NotUsed> in) {
-        return null;
+        LOGGER.info("say hello to - streaming with a streaming");
+        return in.map(request -> HelloReply.newBuilder().setMessage("Hello " + request.getName()).build());
     }
 }

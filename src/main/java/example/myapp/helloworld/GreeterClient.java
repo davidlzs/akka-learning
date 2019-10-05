@@ -1,6 +1,7 @@
 package example.myapp.helloworld;
 
 import akka.Done;
+import akka.NotUsed;
 import akka.actor.ActorSystem;
 import akka.grpc.GrpcClientSettings;
 import akka.stream.ActorMaterializer;
@@ -17,11 +18,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GreeterClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(GreeterClient.class);
@@ -37,16 +36,35 @@ public class GreeterClient {
 
         GreeterServiceClient client = GreeterServiceClient.create(settings, materializer, system.dispatcher());
 
-        sinleRequestReply(client);
+        singleRequestReply(client);
 
         streamingRequest(client);
 
         streamingReply(materializer, client);
 
+        streamingHellos(materializer, client);
 
         stopClient(system);
 
 
+    }
+
+    private static void streamingHellos(ActorMaterializer materializer, GreeterServiceClient client) {
+        try {
+            List<HelloRequest> requests = Arrays.asList("David", "Joe", "John")
+                    .stream()
+                    .map(name -> HelloRequest.newBuilder().setName(name).build())
+                    .collect(Collectors.toList());
+            Source<HelloReply, NotUsed> reply = client.streamHellos(Source.from(requests));
+            CompletableFuture<Done> done = reply.runForeach(message -> LOGGER.info("got message {}", message), materializer).toCompletableFuture();
+            done.get(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void streamingReply(ActorMaterializer materializer, GreeterServiceClient client) {
@@ -89,7 +107,7 @@ public class GreeterClient {
         }
     }
 
-    private static void sinleRequestReply(GreeterServiceClient client) {
+    private static void singleRequestReply(GreeterServiceClient client) {
         try {
             HelloRequest request = HelloRequest.newBuilder()
                     .setName("David")
