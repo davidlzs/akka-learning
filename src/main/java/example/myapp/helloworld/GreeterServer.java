@@ -13,27 +13,38 @@ import example.myapp.helloworld.grpc.GreeterServiceHandlerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.concurrent.CompletionStage;
 
 public class GreeterServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(GreeterServer.class);
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Config config = ConfigFactory.load("akka_grpc_server.conf")
                 .withFallback(ConfigFactory.defaultApplication());
         ActorSystem system = ActorSystem.create("HelloWorld", config);
 
-        run(system).thenAccept(binding -> {
+        String host = config.getString("grpc.server.host");
+        int port = config.getInt("grpc.server.port");
+        run(system, host, port).thenAccept(binding -> {
             LOGGER.info("Server started");
         });
+
+        stopServer(system);
     }
 
-    private static CompletionStage<ServerBinding> run(ActorSystem system) {
+    private static void stopServer(ActorSystem system) throws IOException {
+        LOGGER.info("Press any key to stop server");
+        System.in.read();
+        system.terminate();
+    }
+
+    private static CompletionStage<ServerBinding> run(ActorSystem system, String host, int port) {
         Materializer mat = ActorMaterializer.create(system);
-        GreeterService iml = new GreeterServiceImpl();
+        GreeterService iml = new GreeterServiceImpl(mat);
         return Http.get(system).bindAndHandleAsync(
                 GreeterServiceHandlerFactory.create(iml, mat, system),
-                ConnectHttp.toHost("127.0.0.1", 8080),
+                ConnectHttp.toHost(host, port),
                 mat
         );
     }
