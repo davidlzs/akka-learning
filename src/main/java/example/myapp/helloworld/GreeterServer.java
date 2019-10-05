@@ -24,8 +24,9 @@ public class GreeterServer {
                 .withFallback(ConfigFactory.defaultApplication());
         ActorSystem system = ActorSystem.create("HelloWorld", config);
 
-        String host = config.getString("grpc.server.host");
-        int port = config.getInt("grpc.server.port");
+        Settings.SettingsImpl settings = Settings.SettingProvider.get(system);
+        String host = settings.GRPC_SERVER_HOST;
+        int port = settings.GRPC_SERVER_PORT;
         run(system, host, port).thenAccept(binding -> {
             LOGGER.info("Server started");
         });
@@ -41,9 +42,9 @@ public class GreeterServer {
 
     private static CompletionStage<ServerBinding> run(ActorSystem system, String host, int port) {
         Materializer mat = ActorMaterializer.create(system);
-        GreeterService iml = new GreeterServiceImpl(mat);
+        GreeterService impl = new GreeterServiceImpl(mat);
         return Http.get(system).bindAndHandleAsync(
-                GreeterServiceHandlerFactory.create(iml, mat, system),
+                GreeterServiceHandlerFactory.create(impl, mat, system),
                 ConnectHttp.toHost(host, port),
                 mat
         );
