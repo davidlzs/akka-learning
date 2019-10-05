@@ -19,7 +19,7 @@ public class GreeterServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(GreeterServer.class);
 
     public static void main(String[] args) {
-        Config config = ConfigFactory.parseString("akka.http.server.preview.enable-http2 = on")
+        Config config = ConfigFactory.load("akka_grpc_server.conf")
                 .withFallback(ConfigFactory.defaultApplication());
         ActorSystem system = ActorSystem.create("HelloWorld", config);
 

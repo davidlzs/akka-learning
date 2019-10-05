@@ -3,6 +3,8 @@ package example.myapp.helloworld;
 import akka.actor.ActorSystem;
 import akka.grpc.GrpcClientSettings;
 import akka.stream.ActorMaterializer;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import example.myapp.helloworld.grpc.GreeterService;
 import example.myapp.helloworld.grpc.GreeterServiceClient;
 import example.myapp.helloworld.grpc.HelloReply;
@@ -20,7 +22,9 @@ public class GreeterClient {
         String serverHost = "127.0.0.1";
         int serverPort = 8080;
 
-        ActorSystem system = ActorSystem.create("HelloWorldClient");
+        Config config = ConfigFactory.load("akka_grpc_client.conf");
+
+        ActorSystem system = ActorSystem.create("HelloWorldClient", config);
         ActorMaterializer materializer = ActorMaterializer.create(system);
 
         GrpcClientSettings settings = GrpcClientSettings.fromConfig(GreeterService.name, system);
