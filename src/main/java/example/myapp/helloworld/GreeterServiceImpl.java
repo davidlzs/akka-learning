@@ -10,6 +10,8 @@ import example.myapp.helloworld.grpc.HelloRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
@@ -48,7 +50,13 @@ public class GreeterServiceImpl implements GreeterService {
 
     @Override
     public Source<HelloReply, NotUsed> itKeepsReplying(HelloRequest in) {
-        return null;
+
+        LOGGER.info("say hello to - " +  in.getName());
+        List<HelloReply> replies = Arrays.asList("David", "Susan", "Bob")
+                .stream()
+                .map(name -> HelloReply.newBuilder().setMessage("Hello from " + name + " to " + in.getName()).build())
+                .collect(Collectors.toList());
+        return Source.from(replies);
     }
 
     @Override

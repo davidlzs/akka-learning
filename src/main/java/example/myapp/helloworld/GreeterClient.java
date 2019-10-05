@@ -1,5 +1,6 @@
 package example.myapp.helloworld;
 
+import akka.Done;
 import akka.actor.ActorSystem;
 import akka.grpc.GrpcClientSettings;
 import akka.stream.ActorMaterializer;
@@ -40,9 +41,29 @@ public class GreeterClient {
 
         streamingRequest(client);
 
+        streamingReply(materializer, client);
+
+
         stopClient(system);
 
 
+    }
+
+    private static void streamingReply(ActorMaterializer materializer, GreeterServiceClient client) {
+        try {
+            HelloRequest request = HelloRequest.newBuilder()
+                    .setName("John")
+                    .build();
+            CompletionStage<Done> done = client.itKeepsReplying(request).runForeach(message -> LOGGER.info("got reply {}", message), materializer);
+
+            done.toCompletableFuture().get(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void stopClient(ActorSystem system) throws IOException {
