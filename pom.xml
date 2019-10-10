@@ -102,6 +102,12 @@
             <artifactId>akka-grpc-runtime_2.12</artifactId>
             <version>${akka.grpc.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.typesafe.play</groupId>
+            <artifactId>play-guice_2.12</artifactId>
+            <version>2.7.3</version>
+        </dependency>
     </dependencies>
 
     <build>
