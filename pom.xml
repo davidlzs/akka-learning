@@ -108,6 +108,18 @@
             <artifactId>play-guice_2.12</artifactId>
             <version>2.7.3</version>
         </dependency>
+
+    <!--        Avro-->
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro-compiler</artifactId>
+            <version>1.8.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro-maven-plugin</artifactId>
+            <version>1.8.2</version>
+        </dependency>
     </dependencies>
 
     <build>
