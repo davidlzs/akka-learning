@@ -20,55 +20,55 @@ import io.nats.client.Connection;
 import io.nats.client.Nats;
 
 public class PublishEvents {
-    static class Event {
+    static class EventEnvelope {
         public UUID id;
         public String source;
         public String type;
         public Instant createAt;
-        public Changes changes;
+        public Changes body;
 
-        private Event(UUID id, String source, String type, Instant createAt, Changes changes) {
+        private EventEnvelope(UUID id, String source, String type, Instant createAt, Changes body) {
             this.id = id;
             this.source = source;
             this.type = type;
             this.createAt = createAt;
-            this.changes = changes;
+            this.body = body;
         }
 
-        public static class EventBuilder {
+        public static class EventEnvelopeBuilder {
             private UUID id;
             private String source;
             private String type;
             private Instant createAt;
-            private Changes changes;
+            private Changes body;
 
-            public EventBuilder withId(UUID id) {
+            public EventEnvelopeBuilder withId(UUID id) {
                 this.id = id;
                 return this;
             }
 
-            public EventBuilder withSource(String source) {
+            public EventEnvelopeBuilder withSource(String source) {
                 this.source = source;
                 return this;
             }
 
-            public EventBuilder withType(String type) {
+            public EventEnvelopeBuilder withType(String type) {
                 this.type = type;
                 return this;
             }
 
-            public EventBuilder withCreateAt(Instant createAt) {
+            public EventEnvelopeBuilder withCreateAt(Instant createAt) {
                 this.createAt = createAt;
                 return this;
             }
 
-            public EventBuilder withChanges(Changes changes) {
-                this.changes = changes;
+            public EventEnvelopeBuilder withBody(Changes changes) {
+                this.body = changes;
                 return this;
             }
 
-            public Event build() {
-                return new Event(id, source, type, createAt, changes);
+            public EventEnvelope build() {
+                return new EventEnvelope(id, source, type, createAt, body);
             }
         }
     }
@@ -134,21 +134,21 @@ public class PublishEvents {
     public static void main(String[] args) {
         try (Connection nc = Nats.connect("nats://localhost:4222")) {
             while(true) {
-                List<Event> events = Arrays.asList(
+                List<EventEnvelope> eventEnvelopes = Arrays.asList(
                         randomLockEvent(),
                         randomThermostatEvent()
                 );
 
-                for (Event event : events) {
+                for (EventEnvelope eventEnvelope : eventEnvelopes) {
                     GsonBuilder builder = new GsonBuilder();
                     Gson gson = builder.create();
-                    String json = gson.toJson(event);
+                    String json = gson.toJson(eventEnvelope);
 
-                    nc.publish(event.source.replace("/", ".").substring(1), json.getBytes(StandardCharsets.UTF_8));
+                    nc.publish(eventEnvelope.source.replace("/", ".").substring(1), json.getBytes(StandardCharsets.UTF_8));
 
                     nc.flush(Duration.ZERO);
                 }
-                Thread.sleep(1000L);
+                //Thread.sleep(1000L);
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -159,7 +159,7 @@ public class PublishEvents {
         }
     }
 
-    private static Event randomThermostatEvent() {
+    private static EventEnvelope randomThermostatEvent() {
         String operatorType = randomOperatorType();
         int temp = randomTemperature();
         int coolingSetpoint = randomCoolingSetpoint();
@@ -170,11 +170,11 @@ public class PublishEvents {
         changeSet.put("heatingSetpoint", String.valueOf(heatingSetpoint));
         Changes changes = new Changes.ChangesBuilder().withChanges(changeSet)
                 .build();
-        return new Event.EventBuilder().withId(UUID.randomUUID())
+        return new EventEnvelope.EventEnvelopeBuilder().withId(UUID.randomUUID())
                 .withCreateAt(Instant.now())
                 .withType("DeviceStateChange")
-                .withSource("/gateway/e0b8c1d3-ab3b-454b-a8f7-86d34acc4594/device/a1234567-ad3b-11e8-98d0-529269fb1459/Thermostat")
-                .withChanges(changes)
+                .withSource("/hub/e0b8c1d3-ab3b-454b-a8f7-86d34acc4594/device/a1234567-ad3b-11e8-98d0-529269fb1459/Thermostat")
+                .withBody(changes)
                 .build();
     }
 
@@ -197,7 +197,7 @@ public class PublishEvents {
 
 
 
-    private static Event randomLockEvent() {
+    private static EventEnvelope randomLockEvent() {
         String operatorType = randomOperatorType();
         String userId = operatorType.equals("Remote") || operatorType.equals("KeyPad") ? randomUserId() : null;
         Operator operator = new Operator.OperatorBuilder().withId(userId).withType(operatorType).build();
@@ -205,11 +205,11 @@ public class PublishEvents {
         Changes changes = new Changes.ChangesBuilder().withChanges(Collections.singletonMap("lockState", lockState))
                 .withOperator(operator)
                 .build();
-        return new Event.EventBuilder().withId(UUID.randomUUID())
+        return new EventEnvelope.EventEnvelopeBuilder().withId(UUID.randomUUID())
                 .withCreateAt(Instant.now())
                 .withType("DeviceStateChange")
                 .withSource("/gateway/e0b8c1d3-ab3b-454b-a8f7-86d34acc4594/device/516920d4-ad3b-11e8-98d0-529269fb1459/lock")
-                .withChanges(changes)
+                .withBody(changes)
                 .build();
     }
 
