@@ -11,23 +11,29 @@ import java.util.concurrent.CountDownLatch;
 import io.nats.client.Connection;
 import io.nats.client.Dispatcher;
 import io.nats.client.Nats;
+import io.nats.client.Options;
 
 public class SubscribeEventsWildCard {
 
     private static Gson gson = new GsonBuilder().create();
 
     public static void main(String[] args) {
-        try (Connection nc = Nats.connect("nats://localhost:4222")) {
+        Options options = new Options.Builder().
+                server("nats://localhost:4222").
+                userInfo("nats","password"). // Set a user and plain text password
+                build();
+        try (Connection nc = Nats.connect(options)) {
             CountDownLatch latch = new CountDownLatch(10000);
 
             Dispatcher dispatcher = nc.createDispatcher((msg) -> {
                 String str = new String(msg.getData());
                 try {
                     GenericEventDto event = gson.fromJson(str, GenericEventDto.class);
-                    System.out.println(str);
                     System.out.println(event);
                 } catch (Exception e) {
                     e.printStackTrace();
+                } finally {
+                    System.out.println(str);
                 }
                 latch.countDown();
             });

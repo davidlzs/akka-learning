@@ -18,6 +18,7 @@ import java.util.concurrent.TimeoutException;
 
 import io.nats.client.Connection;
 import io.nats.client.Nats;
+import io.nats.client.Options;
 
 public class PublishEvents {
     static class EventEnvelope {
@@ -132,7 +133,11 @@ public class PublishEvents {
     }
 
     public static void main(String[] args) {
-        try (Connection nc = Nats.connect("nats://localhost:4222")) {
+        Options options = new Options.Builder().
+                server("nats://localhost:4222").
+                userInfo("nats".toCharArray(),"password".toCharArray()). // Set a user and plain text password
+                build();
+        try (Connection nc = Nats.connect(options)) {
             while(true) {
                 List<EventEnvelope> eventEnvelopes = Arrays.asList(
                         randomLockEvent(),
@@ -208,7 +213,7 @@ public class PublishEvents {
         return new EventEnvelope.EventEnvelopeBuilder().withId(UUID.randomUUID())
                 .withCreateAt(Instant.now())
                 .withType("DeviceStateChange")
-                .withSource("/gateway/e0b8c1d3-ab3b-454b-a8f7-86d34acc4594/device/516920d4-ad3b-11e8-98d0-529269fb1459/lock")
+                .withSource("/hub/e0b8c1d3-ab3b-454b-a8f7-86d34acc4594/device/516920d4-ad3b-11e8-98d0-529269fb1459/lock")
                 .withBody(changes)
                 .build();
     }
