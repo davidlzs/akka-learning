@@ -88,13 +88,13 @@
         <dependency>
             <groupId>io.kamon</groupId>
             <artifactId>kamon-bundle_2.12</artifactId>
-            <version>2.0.1</version>
+            <version>2.0.4</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.kamon</groupId>
             <artifactId>kamon-prometheus_2.12</artifactId>
-            <version>2.0.0</version>
+            <version>2.0.1</version>
         </dependency>
 
         <dependency>
@@ -127,6 +127,13 @@
             <groupId>io.nats</groupId>
             <artifactId>jnats</artifactId>
             <version>2.6.5</version>
+        </dependency>
+
+        <!-- nats streaming -->
+        <dependency>
+            <groupId>io.nats</groupId>
+            <artifactId>java-nats-streaming</artifactId>
+            <version>2.2.3</version>
         </dependency>
     </dependencies>
 
