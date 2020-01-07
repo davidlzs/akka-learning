@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+//#options
+option java_multiple_files = true;
+option java_package = "com.dliu.grpc.rpcservice";
+option java_outer_classname = "RPCServiceProto";
+
+package rpcservice;
+//#options
+
+//#services
+service RPCService {
+    rpc ExecuteCommand (ExecuteCommandRequest) returns (ExecuteCommandResponse) {}
+}
+//#services
+
+//#messages
+message ExecuteCommandRequest {
+    string hubId = 1;
+    string deviceId = 2;
+    string capability = 3;
+    string createdAt = 4;
+    string expiresAt = 5;
+    string requestId = 6;
+    string method = 7;
+    repeated string params = 8;
+}
+
+message ExecuteCommandResponse {
+    string requestId = 1;
+    bytes value = 2;
+}
+//#messages
