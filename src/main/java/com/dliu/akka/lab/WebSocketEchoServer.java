@@ -128,7 +128,18 @@ public class WebSocketEchoServer extends AllDirectives {
     private Flow<Message, Message, NotUsed> stackedWebSocketFlow() {
         BidiFlow<String, String, String, String, NotUsed> codec = BidiFlow.fromFunctions(this::reverse, s -> s);
         BidiFlow<Message, String, String, Message, NotUsed> messageStringConverter = BidiFlow.fromFlows(messageToStringFlow(), stringToMessageFlow());
-        return messageStringConverter.join(codec.join(Flow.of(String.class)));
+        return messageStringConverter.join(codec.join(Flow.of(String.class)))
+                .watchTermination((mat, termination) -> {
+                    System.out.println("connected - add watchTermination");
+                    termination.whenComplete((done, throwable) -> {
+                        if (throwable != null) {
+                            System.err.println("disconnected with exception: " + throwable);
+                        } else {
+                            System.out.println("disconnected");
+                        }
+                    });
+                    return mat;
+                });
     }
 
     private String reverse(String text) {
@@ -140,6 +151,6 @@ public class WebSocketEchoServer extends AllDirectives {
     }
 
     private Flow<String, Message, NotUsed> stringToMessageFlow() {
-        return Flow.fromFunction(text -> (Message)TextMessage.create(text));
+        return Flow.fromFunction(text -> (Message) TextMessage.create(text));
     }
 }

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Ignore("Ignore long running test, uncomment when you need to run this test")
 public class RequestReplyIntegrationTest {
     private static final String MAX_ASSERT_WAITING_IN_MILLISECONDS_CONFIG = "max_assert_waiting_in_milliseconds";
     private static final String NUMBER_OF_REQUESTS_CONFIG = "number_of_requests";
