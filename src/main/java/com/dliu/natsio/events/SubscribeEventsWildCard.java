@@ -26,10 +26,12 @@ public class SubscribeEventsWildCard {
             CountDownLatch latch = new CountDownLatch(10000);
 
             Dispatcher dispatcher = nc.createDispatcher((msg) -> {
+
+
                 String str = new String(msg.getData());
                 try {
                     GenericEventDto event = gson.fromJson(str, GenericEventDto.class);
-                    System.out.println(event);
+                    System.out.println("subject: " + msg.getSubject() + " " + event);
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
@@ -38,8 +40,9 @@ public class SubscribeEventsWildCard {
                 latch.countDown();
             });
 
-            //dispatcher.subscribe(">"); //
-            dispatcher.subscribe("hub.>");
+            //dispatcher.subscribe("hub.*"); //
+            dispatcher.subscribe(">"); //
+            //dispatcher.subscribe("hub.>");
             //dispatcher.subscribe("hub.*.>");
             //dispatcher.subscribe("hub.e0b8c1d3-ab3b-454b-a8f7-86d34acc4594.>");
             //dispatcher.subscribe("hub.*.*.*.lock");
