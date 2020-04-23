@@ -7,14 +7,13 @@ import java.util.Calendar;
 
 import io.nats.client.Connection;
 import io.nats.client.Message;
-import io.nats.client.Nats;
 import io.nats.client.Subscription;
 
 public class SubscribeWithReply {
     public static void main(String[] args) {
         try {
             // [begin subscribe_w_reply]
-            Connection nc = Nats.connect("nats://localhost:4222");
+            Connection nc = NatsConnectionFactory.connect("nats://localhost:4222", "nats", "password");
 
             // Subscribe
             Subscription sub = nc.subscribe("time");
