@@ -21,7 +21,7 @@ public class RPCClient {
 
     public static void main(String[] args) throws IOException {
 
-        Config config = ConfigFactory.load("akka_grpc_client.conf");
+        Config config = ConfigFactory.load("akka_grpc_rpc_service_client.conf");
 
         ActorSystem system = ActorSystem.create("RPCClient", config);
         ActorMaterializer materializer = ActorMaterializer.create(system);
