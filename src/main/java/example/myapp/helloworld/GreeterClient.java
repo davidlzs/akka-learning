@@ -34,7 +34,7 @@ public class GreeterClient {
 
         GrpcClientSettings settings = GrpcClientSettings.fromConfig(GreeterService.name, system);
 
-        GreeterServiceClient client = GreeterServiceClient.create(settings, materializer, system.dispatcher());
+        GreeterServiceClient client = GreeterServiceClient.create(settings, system);
 
         singleRequestReply(client);
 

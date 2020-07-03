@@ -44,7 +44,7 @@ public class GreeterServer {
         Materializer mat = ActorMaterializer.create(system);
         GreeterService impl = new GreeterServiceImpl(mat);
         return Http.get(system).bindAndHandleAsync(
-                GreeterServiceHandlerFactory.create(impl, mat, system),
+                GreeterServiceHandlerFactory.create(impl, system),
                 ConnectHttp.toHost(host, port),
                 mat
         );

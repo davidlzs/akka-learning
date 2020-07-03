@@ -44,7 +44,7 @@ public class RPCServer {
         Materializer mat = ActorMaterializer.create(system);
         RPCService impl = new RPCServiceImpl();
         return Http.get(system).bindAndHandleAsync(
-                RPCServiceHandlerFactory.create(impl, mat, system),
+                RPCServiceHandlerFactory.create(impl, system),
                 ConnectHttp.toHost(host, port),
                 mat
         );

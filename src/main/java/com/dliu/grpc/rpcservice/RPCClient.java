@@ -24,11 +24,10 @@ public class RPCClient {
         Config config = ConfigFactory.load("akka_grpc_rpc_service_client.conf");
 
         ActorSystem system = ActorSystem.create("RPCClient", config);
-        ActorMaterializer materializer = ActorMaterializer.create(system);
 
         GrpcClientSettings settings = GrpcClientSettings.fromConfig(RPCService.name, system);
 
-        RPCServiceClient client = RPCServiceClient.create(settings, materializer, system.dispatcher());
+        RPCServiceClient client = RPCServiceClient.create(settings, system);
 
         singleRequestReply(client);
 

@@ -13,59 +13,86 @@
         <maven-compiler.target>1.8</maven-compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <akka.version>2.5.23</akka.version>
-        <akka.http.version>10.1.9</akka.http.version>
-
-        <akka.grpc.version>0.7.1</akka.grpc.version>
-        <grpc.version>1.22.1</grpc.version>
+        <scala.binary.version>2.12</scala.binary.version>
+        <akka.version>2.6.6</akka.version>
+        <akka.http.version>10.1.12</akka.http.version>
+        <akka.grpc.version>1.0.0</akka.grpc.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-stream_${scala.binary.version}</artifactId>
+            <version>${akka.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-stream-testkit_${scala.binary.version}</artifactId>
+            <version>${akka.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-actor_${scala.binary.version}</artifactId>
+            <version>${akka.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-discovery_${scala.binary.version}</artifactId>
+            <version>${akka.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-testkit_${scala.binary.version}</artifactId>
+            <version>${akka.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-slf4j_${scala.binary.version}</artifactId>
+            <version>${akka.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-http_${scala.binary.version}</artifactId>
+            <version>${akka.http.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.kamon</groupId>
+            <artifactId>kamon-bundle_${scala.binary.version}</artifactId>
+            <version>2.0.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.kamon</groupId>
+            <artifactId>kamon-prometheus_${scala.binary.version}</artifactId>
+            <version>2.0.1</version>
+        </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12 -->
+        <dependency>
+            <groupId>com.lightbend.akka.grpc</groupId>
+            <artifactId>akka-grpc-runtime_${scala.binary.version}</artifactId>
+            <version>${akka.grpc.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.play</groupId>
+            <artifactId>play-guice_${scala.binary.version}</artifactId>
+            <version>2.7.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.6</version>
+        </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.7.25</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/log4j/log4j -->
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
             <version>1.2.17</version>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-stream_2.12</artifactId>
-            <version>${akka.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-stream-testkit_2.12</artifactId>
-            <version>${akka.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-actor_2.12</artifactId>
-            <version>${akka.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-testkit_2.12</artifactId>
-            <version>${akka.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-slf4j_2.12</artifactId>
-            <version>${akka.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-http_2.12</artifactId>
-            <version>${akka.http.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -84,29 +111,6 @@
             <artifactId>awaitility</artifactId>
             <version>3.1.2</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.kamon</groupId>
-            <artifactId>kamon-bundle_2.12</artifactId>
-            <version>2.0.4</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.kamon</groupId>
-            <artifactId>kamon-prometheus_2.12</artifactId>
-            <version>2.0.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.lightbend.akka.grpc</groupId>
-            <artifactId>akka-grpc-runtime_2.12</artifactId>
-            <version>${akka.grpc.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.typesafe.play</groupId>
-            <artifactId>play-guice_2.12</artifactId>
-            <version>2.7.3</version>
         </dependency>
 
     <!--        Avro-->
@@ -136,7 +140,6 @@
             <version>2.2.3</version>
         </dependency>
     </dependencies>
-
 
     <build>
         <plugins>
