@@ -1,15 +1,15 @@
 package com.dliu.akka.lab.requestreplydemo;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Inbox;
 import com.dliu.akka.lab.requestreplydemo.actors.BackendEchoActor;
 import com.dliu.akka.lab.requestreplydemo.actors.BackendProtocol;
 import com.dliu.akka.lab.requestreplydemo.actors.BackendRouterActor;
 
 import java.time.Duration;
 import java.util.UUID;
-import java.util.concurrent.TimeoutException;
+
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.pattern.Patterns;
 
 public class RequestReplyMain {
     public static void main(String[] args) {
@@ -22,13 +22,11 @@ public class RequestReplyMain {
         UUID requestId = UUID.randomUUID();
         BackendProtocol.ExecuteCommandCmd cmd = new BackendProtocol.ExecuteCommandCmd(requestId, "getTemperature");
 
-        Inbox inbox = Inbox.create(system);
-        inbox.send(backendRouter, cmd);
-
         try {
-            System.out.println("response received" + inbox.receive(Duration.ofSeconds(10)));
-        } catch (TimeoutException e) {
-            throw new RuntimeException(e);
+            Object result = Patterns.ask(backendRouter, cmd, Duration.ofSeconds(10))
+                    .toCompletableFuture()
+                    .join();
+            System.out.println("response received" + result);
         } finally {
             system.terminate();
         }
