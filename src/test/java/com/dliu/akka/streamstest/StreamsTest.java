@@ -1,6 +1,7 @@
 package com.dliu.akka.streamstest;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -90,6 +91,7 @@ public class StreamsTest {
     }
 
     @Test
+    @Ignore
     public void integrateWithStreamsTestSource() {
         // setup
         Sink<Integer, CompletionStage<Done>> sinkUnderTest = Sink.foreach((Integer a) -> {
