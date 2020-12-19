@@ -4,18 +4,22 @@ package com.dliu.akka.typed.cqrs;
 import java.util.HashMap;
 import java.util.Map;
 
+import akka.actor.typed.ActorRef;
 import akka.actor.typed.ActorSystem;
+import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.Entity;
 import akka.cluster.sharding.typed.javadsl.EntityTypeKey;
 import akka.persistence.typed.PersistenceId;
+import akka.persistence.typed.RecoveryCompleted;
 import akka.persistence.typed.javadsl.CommandHandlerWithReply;
 import akka.persistence.typed.javadsl.CommandHandlerWithReplyBuilder;
 import akka.persistence.typed.javadsl.EventHandler;
 import akka.persistence.typed.javadsl.EventSourcedBehaviorWithEnforcedReplies;
 import akka.persistence.typed.javadsl.ReplyEffect;
+import akka.persistence.typed.javadsl.SignalHandler;
 
 public class ShoppingCart extends EventSourcedBehaviorWithEnforcedReplies<ShoppingCart.Command, ShoppingCart.Event, ShoppingCart.State> {
 
@@ -33,8 +37,12 @@ public class ShoppingCart extends EventSourcedBehaviorWithEnforcedReplies<Shoppi
     public static void init(ActorSystem<?> system) {
         system.log().info("Starting the sharding....");
         ClusterSharding.get(system).init(Entity.of(ENTITY_TYPE_KEY, entityContext -> {
-            return Behaviors.setup(ctx -> new ShoppingCart(entityContext.getEntityId(), ctx));
+            return create(entityContext.getEntityId());
         }));
+    }
+
+    public static Behavior<Command> create(String cartId) {
+        return Behaviors.setup(ctx -> new ShoppingCart(cartId, ctx));
     }
 
     // Commands
@@ -43,10 +51,12 @@ public class ShoppingCart extends EventSourcedBehaviorWithEnforcedReplies<Shoppi
     public static class AddItem implements  Command {
         public final String itemId;
         public final int quantity;
+        public final ActorRef<Confirmation> replyTo;
 
-        public AddItem(String itemId, int quantity) {
+        public AddItem(String itemId, int quantity, ActorRef<Confirmation> replyTo) {
             this.itemId = itemId;
             this.quantity = quantity;
+            this.replyTo = replyTo;
         }
 
         @Override
@@ -54,6 +64,7 @@ public class ShoppingCart extends EventSourcedBehaviorWithEnforcedReplies<Shoppi
             return "AddItem{" +
                     "itemId='" + itemId + '\'' +
                     ", quantity=" + quantity +
+                    ", replyTo=" + replyTo +
                     '}';
         }
     }
@@ -80,6 +91,10 @@ public class ShoppingCart extends EventSourcedBehaviorWithEnforcedReplies<Shoppi
         }
     }
     // End of State
+    // Confirmation
+    public final class Confirmation {
+    }
+    // End of Confirmation
 
     @Override
     public State emptyState() {
@@ -99,13 +114,29 @@ public class ShoppingCart extends EventSourcedBehaviorWithEnforcedReplies<Shoppi
 
         return builder.forAnyState()
                 .onCommand(AddItem.class, this::addItem)
+                .onAnyCommand(this::unhandledCommand);
+    }
+
+    @Override
+    public SignalHandler<State> signalHandler() {
+        return newSignalHandlerBuilder()
+                .onSignal(RecoveryCompleted.class, (state, signal) -> {
+                    context.getLog().info("Recovery Finished: State is {} and signal is: {}", state, signal);
+                })
                 .build();
+
+    }
+
+    private ReplyEffect<Event, State> unhandledCommand(Command command) {
+        context.getLog().info("Unhandled command: {}", command);
+        return Effect().noReply();
     }
 
     private ReplyEffect<Event, State> addItem(AddItem command) {
         context.getLog().info("Add Item: " + command);
         ItemAdded itemAdded = new ItemAdded(command.itemId, command.quantity);
         // TODO: add reply to the caller actor
-        return Effect().persist(itemAdded).thenNoReply();
+        return Effect().persist(itemAdded).thenReply(command.replyTo, updatedState -> new Confirmation());
     }
+
 }
