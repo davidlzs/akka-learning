@@ -1,5 +1,6 @@
 package com.dliu.akka.typed.cqrs;
 
+import akka.pattern.StatusReply;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -17,6 +18,8 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import akka.actor.typed.javadsl.ReceiveBuilder;
 
+import static org.junit.Assert.*;
+
 public class ShoppingCartTest {
     @ClassRule
     public static TestKitJunitResource testKit = new TestKitJunitResource(
@@ -26,20 +29,35 @@ public class ShoppingCartTest {
     );
 
     private static String newCartId() {
-        return "cart-" + 1;
+        return "cart-" + UUID.randomUUID();
     }
 
     @Test
     public void shouldAddItem() {
         // setup
         ActorRef<ShoppingCart.Command> cart = testKit.spawn(ShoppingCart.create(newCartId()));
-        TestProbe<ShoppingCart.Confirmation> probe = testKit.createTestProbe();
+        TestProbe<StatusReply<ShoppingCart.Summary>> probe = testKit.createTestProbe();
         // execute
         long start = System.currentTimeMillis();
         cart.tell(new ShoppingCart.AddItem("foo", 42, probe.getRef()));
         // assert
-        ShoppingCart.Confirmation result = probe.expectMessageClass(ShoppingCart.Confirmation.class);
+        StatusReply<ShoppingCart.Summary> result = probe.receiveMessage();
+        assertTrue(result.isSuccess());
+        assertEquals(42, result.getValue().items.get("foo").intValue());
         System.out.println("Got result " + result + " in " + (System.currentTimeMillis() - start) + " ms");
+    }
+
+    @Test
+    public void shouldRejectItemAlreadyAdded() {
+        // setup
+        ActorRef<ShoppingCart.Command> cart = testKit.spawn(ShoppingCart.create(newCartId()));
+        TestProbe<StatusReply<ShoppingCart.Summary>> probe = testKit.createTestProbe();
+        cart.tell(new ShoppingCart.AddItem("foo", 42,  probe.getRef()));
+        assertTrue(probe.receiveMessage().isSuccess());
+        // execute
+        cart.tell(new ShoppingCart.AddItem("foo", 10, probe.getRef()));
+        // assert
+        assertTrue(probe.receiveMessage().isError());
     }
 
     private static Behavior<Command> dummyBehavior() {

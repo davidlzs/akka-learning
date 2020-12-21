@@ -1,5 +1,6 @@
 package com.dliu.akka.typed.cqrs;
 
+import akka.pattern.StatusReply;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
@@ -41,7 +42,7 @@ public class Main {
         EntityRef<ShoppingCart.Command> dliuCartRef = sharding.entityRefFor(ShoppingCart.ENTITY_TYPE_KEY, "dliu-cart");
         LOGGER.info("Sending the command out...");
         List<Long> start = new ArrayList();
-        CompletionStage<ShoppingCart.Confirmation> result = dliuCartRef.ask(replyTo -> {
+        CompletionStage<StatusReply<ShoppingCart.Summary>> result = dliuCartRef.ask(replyTo -> {
             LOGGER.info("Sending command in the lambda: " + replyTo);
             start.add(System.currentTimeMillis());
             return new ShoppingCart.AddItem("boots", 2, replyTo);

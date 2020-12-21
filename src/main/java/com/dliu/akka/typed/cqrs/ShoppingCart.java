@@ -1,6 +1,7 @@
 package com.dliu.akka.typed.cqrs;
 
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,6 +13,7 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.Entity;
 import akka.cluster.sharding.typed.javadsl.EntityTypeKey;
+import akka.pattern.StatusReply;
 import akka.persistence.typed.PersistenceId;
 import akka.persistence.typed.RecoveryCompleted;
 import akka.persistence.typed.javadsl.CommandHandlerWithReply;
@@ -28,6 +30,7 @@ public class ShoppingCart extends EventSourcedBehaviorWithEnforcedReplies<Shoppi
     // EntityTypeKey is from typed sharding.
     public static final EntityTypeKey<Command> ENTITY_TYPE_KEY = EntityTypeKey.create(Command.class, "ShoppingCart");
     private final ActorContext<Command> context;
+    private final OpenShoppingCartCommandHandler openShoppingCartCommandHandler = new OpenShoppingCartCommandHandler();
 
     private ShoppingCart(String cartId, ActorContext<Command> context) {
         super(PersistenceId.of(ENTITY_TYPE_KEY.name(), cartId)); // What is the name of EntityTypeKey?
@@ -51,9 +54,9 @@ public class ShoppingCart extends EventSourcedBehaviorWithEnforcedReplies<Shoppi
     public static class AddItem implements  Command {
         public final String itemId;
         public final int quantity;
-        public final ActorRef<Confirmation> replyTo;
+        public final ActorRef<StatusReply<Summary>> replyTo;
 
-        public AddItem(String itemId, int quantity, ActorRef<Confirmation> replyTo) {
+        public AddItem(String itemId, int quantity, ActorRef<StatusReply<Summary>> replyTo) {
             this.itemId = itemId;
             this.quantity = quantity;
             this.replyTo = replyTo;
@@ -89,12 +92,21 @@ public class ShoppingCart extends EventSourcedBehaviorWithEnforcedReplies<Shoppi
             items.put(itemId, quantity);
             return this;
         }
+
+        public Summary toSummary() {
+            return new Summary(items);
+        }
     }
     // End of State
-    // Confirmation
-    public final class Confirmation {
+    // Summary
+    public static final class Summary {
+        public final Map<String, Integer> items;
+
+        public Summary(Map<String, Integer> items) {
+            this.items = Collections.unmodifiableMap(items);
+        }
     }
-    // End of Confirmation
+    // End of Summary
 
     @Override
     public State emptyState() {
@@ -113,7 +125,7 @@ public class ShoppingCart extends EventSourcedBehaviorWithEnforcedReplies<Shoppi
         CommandHandlerWithReplyBuilder<Command, Event, State> builder = newCommandHandlerWithReplyBuilder();
 
         return builder.forAnyState()
-                .onCommand(AddItem.class, this::addItem)
+                .onCommand(AddItem.class, (state, cmd) -> openShoppingCartCommandHandler.addItem(state, cmd, context))
                 .onAnyCommand(this::unhandledCommand);
     }
 
@@ -132,11 +144,17 @@ public class ShoppingCart extends EventSourcedBehaviorWithEnforcedReplies<Shoppi
         return Effect().noReply();
     }
 
-    private ReplyEffect<Event, State> addItem(AddItem command) {
-        context.getLog().info("Add Item: " + command);
-        ItemAdded itemAdded = new ItemAdded(command.itemId, command.quantity);
-        // TODO: add reply to the caller actor
-        return Effect().persist(itemAdded).thenReply(command.replyTo, updatedState -> new Confirmation());
-    }
 
+
+    private final class OpenShoppingCartCommandHandler {
+        private ReplyEffect<Event, State> addItem(State state, AddItem command, ActorContext<?> context) {
+            context.getLog().info("Add Item: " + command);
+            ItemAdded itemAdded = new ItemAdded(command.itemId, command.quantity);
+            if (!state.items.containsKey(command.itemId)) {
+                return Effect().persist(itemAdded).thenReply(command.replyTo, updatedState -> StatusReply.success(updatedState.toSummary()));
+            } else {
+                return Effect().reply(command.replyTo, StatusReply.error("Item '" + command.itemId + "' was already added to this shopping cart"));
+            }
+        }
+    }
 }
