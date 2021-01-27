@@ -1,11 +1,13 @@
 package com.dliu.akka.typed.cqrs;
 
+import akka.actor.typed.ActorRef;
 import akka.pattern.StatusReply;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 import org.slf4j.Logger;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +16,8 @@ import java.util.concurrent.CompletionStage;
 import akka.actor.typed.ActorSystem;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.EntityRef;
+
+import static com.dliu.akka.typed.cqrs.Ledger.*;
 
 public class Main {
     private static Logger LOGGER;
@@ -32,10 +36,23 @@ public class Main {
     private static void testSendCommandToShoppingCart(ActorSystem<Void> shoppingSystem) throws InterruptedException {
 
         ClusterSharding sharding = getSharding(shoppingSystem);
+        sendingLedgerCommand(sharding);
         sendingCommand(sharding);
-        //Thread.sleep(4000);
+        Thread.sleep(4000);
         sendingCommand(sharding);
         sendingCommand(sharding);
+    }
+
+    private static void sendingLedgerCommand(ClusterSharding sharding) {
+        EntityRef<Command> ledger = sharding.entityRefFor(ENTITY_TYPE_KEY, "GeneralLedger");
+        CompletionStage<StatusReply<Result>> result = ledger.ask((ActorRef<StatusReply<Result>> replyTo) -> new Credit("david", BigDecimal.TEN, replyTo), Duration.ofSeconds(5));
+        result.whenComplete((rst, err) -> {
+            if (err != null) {
+                LOGGER.error("Error", err);
+            } else {
+                LOGGER.info("{}", rst);
+            }
+        });
     }
 
     private static void sendingCommand(ClusterSharding sharding) {

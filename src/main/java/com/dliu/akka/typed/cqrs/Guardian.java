@@ -8,6 +8,7 @@ public class Guardian {
     public static Behavior<Void> create() {
         return Behaviors.setup(ctx -> {
             ShoppingCart.init(ctx.getSystem());
+            Ledger.init(ctx.getSystem());
             return Behaviors.empty();
         });
     }
