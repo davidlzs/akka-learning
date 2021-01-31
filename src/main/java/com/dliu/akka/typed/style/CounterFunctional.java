@@ -7,6 +7,9 @@ import akka.actor.typed.ActorSystem;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
+import com.dliu.akka.typed.JsonSerializable;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.typesafe.config.ConfigFactory;
 
 public class CounterFunctional {
     private static CountDownLatch latch = new CountDownLatch(1);
@@ -22,7 +25,7 @@ public class CounterFunctional {
             // wait for one success of response for GetValue then shutdown the actor system
             latch.await();
             return Behaviors.stopped();
-        }), "system");
+        }), "system", ConfigFactory.load("application_force_message_serialization.conf"));
     }
 
     /**
@@ -69,25 +72,28 @@ public class CounterFunctional {
         }
 
         // protocol
-        public interface Command {
+        public interface Command extends JsonSerializable {
         }
 
         public enum Increment implements Command {
             INSTANCE
-            }
+        }
 
 
         public static class GetValue implements Command {
             public final ActorRef<Value> replyTo;
 
+            @JsonCreator
             public GetValue(ActorRef<Value> replyTo) {
                 this.replyTo = replyTo;
             }
         }
+
         // end of protocol
-        public static class Value {
+        public static class Value implements JsonSerializable {
             public final int value;
 
+            @JsonCreator
             public Value(int value) {
                 this.value = value;
             }
