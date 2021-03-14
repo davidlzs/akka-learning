@@ -27,5 +27,7 @@ public class HttpClientMain {
                 .get();
 
         System.out.println(result);
+
+        system.terminate();
     }
 }
