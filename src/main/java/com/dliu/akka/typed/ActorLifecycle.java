@@ -32,7 +32,7 @@ public class ActorLifecycle {
 
         }), "lifecycle");
 
-        // How to register
+        // How to subscribe DeadLetter messages in akka typed? https://stackoverflow.com/questions/59207737/akka-2-6-how-to-read-dead-letters-in-akka-typed
 
         system.eventStream().tell(new Subscribe(DeadLetter.class, system));
 
