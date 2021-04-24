@@ -2,7 +2,7 @@ package com.dliu.akka.typed;
 
 import akka.actor.DeadLetter;
 import akka.actor.typed.*;
-import akka.actor.typed.eventstream.EventStream;
+import akka.actor.typed.eventstream.EventStream.Subscribe;
 import akka.actor.typed.javadsl.AskPattern;
 import akka.actor.typed.javadsl.Behaviors;
 
@@ -34,7 +34,7 @@ public class ActorLifecycle {
 
         // How to register
 
-        system.eventStream().tell(new EventStream.Subscribe(DeadLetter.class, system));
+        system.eventStream().tell(new Subscribe(DeadLetter.class, system));
 
 
         system.tell("Hello");
@@ -42,7 +42,9 @@ public class ActorLifecycle {
         CompletableFuture<Object> future = AskPattern.ask(system, (replyTo) -> "Dummy Message", Duration.ofSeconds(3), system.scheduler())
                 .toCompletableFuture();
         system.tell("Exception");
-        system.tell("Hey");
+        for (int i = 0; i < 10; i++) {
+            system.tell("Hey " + i);
+        }
 
         System.in.read();
         system.terminate();
