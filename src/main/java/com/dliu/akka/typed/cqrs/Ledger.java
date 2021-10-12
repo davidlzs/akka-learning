@@ -1,40 +1,59 @@
 package com.dliu.akka.typed.cqrs;
 
+import org.slf4j.Logger;
+
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.ActorSystem;
 import akka.actor.typed.Behavior;
+import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
+import akka.cluster.sharding.typed.ClusterShardingSettings;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.Entity;
 import akka.cluster.sharding.typed.javadsl.EntityTypeKey;
 import akka.pattern.StatusReply;
 import akka.persistence.typed.PersistenceId;
+import akka.persistence.typed.RecoveryCompleted;
 import akka.persistence.typed.javadsl.CommandHandlerWithReply;
 import akka.persistence.typed.javadsl.EventHandler;
 import akka.persistence.typed.javadsl.EventSourcedBehaviorWithEnforcedReplies;
 import akka.persistence.typed.javadsl.ReplyEffect;
+import akka.persistence.typed.javadsl.SignalHandler;
 
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+
 public class Ledger extends EventSourcedBehaviorWithEnforcedReplies<Ledger.Command, Ledger.Event, Ledger.State> {
     public static final EntityTypeKey<Command> ENTITY_TYPE_KEY = EntityTypeKey.create(Command.class, "Ledger");
 
-    private Ledger(String ledgerName) {
+    private final Logger logger;
+
+    private Ledger(String ledgerName, ActorContext ctx) {
         super(PersistenceId.of(ENTITY_TYPE_KEY.name(), ledgerName));
+        logger = ctx.getLog();
+        // https://doc.akka.io/docs/akka/current/typed/from-classic.html#lifecycle-hooks
+        // In Akka typed actor:
+        // There are no PreStart and PostRestart signals because such action can be done from Behaviors.setup or the constructor of the AbstractBehavior class.
+        logger.info("Simulated PostStart... the constructor is called from Behaviors.setup");
     }
 
     public static Behavior<Command> create(String ledgerName) {
-        return Behaviors.setup(ctx -> new Ledger(ledgerName));
+        return Behaviors.setup(ctx -> new Ledger(ledgerName, ctx));
     }
 
     public static void init(ActorSystem<?> system) {
         system.log().info("Starting the sharding....");
+        ClusterShardingSettings settings = ClusterShardingSettings.create(system);
+                // Enable remember entities, search "remember entities"
+                // or your own log message "Recover completed with state"
+                // or your own log message "Simulated PostStart"
+                //.withRememberEntities(true);
         ClusterSharding.get(system).init(Entity.of(ENTITY_TYPE_KEY, entityContext -> {
             return create(entityContext.getEntityId());
-        }));
+        }).withSettings(settings));
     }
 
     @Override
@@ -57,6 +76,15 @@ public class Ledger extends EventSourcedBehaviorWithEnforcedReplies<Ledger.Comma
                 .forAnyState()
                 .onCommand(Debit.class, this::debit)
                 .onCommand(Credit.class, this::credit)
+                .build();
+    }
+
+    @Override
+    public SignalHandler<State> signalHandler() {
+        return newSignalHandlerBuilder()
+                .onSignal(RecoveryCompleted.instance(), (state) -> {
+                    logger.info("Recover completed with state: {}", state);
+                })
                 .build();
     }
 

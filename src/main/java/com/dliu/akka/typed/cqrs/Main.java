@@ -30,7 +30,7 @@ public class Main {
         // Testing the event souring actor
         Thread.sleep(2000); // waiting for the shard started
 
-        testSendCommandToShoppingCart(shoppingSystem);
+        //testSendCommandToShoppingCart(shoppingSystem);
     }
 
     private static void testSendCommandToShoppingCart(ActorSystem<Void> shoppingSystem) throws InterruptedException {
