@@ -63,6 +63,7 @@ public class StandaloneAsk {
         }
 
         private Behavior<Command> onGiveMeCookies(GiveMeCookies request) {
+            System.out.println("Reply to: " + request.replyTo + " actor: " + getContext().getSelf());
             if (request.count >= 5) {
                 request.replyTo.tell(new InvalidRequest("Too many cookies."));
             } else {
