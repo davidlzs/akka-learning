@@ -99,17 +99,29 @@
             <artifactId>akka-http_${scala.binary.version}</artifactId>
             <version>${akka.http.version}</version>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>io.kamon</groupId>-->
+<!--            <artifactId>kamon-bundle_${scala.binary.version}</artifactId>-->
+<!--            <version>2.0.4</version>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>io.kamon</groupId>-->
+<!--            <artifactId>kamon-prometheus_${scala.binary.version}</artifactId>-->
+<!--            <version>2.0.1</version>-->
+<!--        </dependency>-->
+
         <dependency>
             <groupId>io.kamon</groupId>
             <artifactId>kamon-bundle_${scala.binary.version}</artifactId>
-            <version>2.0.4</version>
-            <scope>test</scope>
+            <version>2.2.3</version>
         </dependency>
         <dependency>
             <groupId>io.kamon</groupId>
             <artifactId>kamon-prometheus_${scala.binary.version}</artifactId>
-            <version>2.0.1</version>
+            <version>2.2.3</version>
         </dependency>
+
 
         <dependency>
             <groupId>com.lightbend.akka.grpc</groupId>
