@@ -73,4 +73,18 @@ public class Echo{
         pinger.tell(new Ping("hello", pong.ref()));
         pong.expectMessage(new Pong("hello"));
     }
+
+    @Test
+    public void testStopActor() {
+        ActorRef<Ping> pinger1 = testKit.spawn(Echo.create(), "pinger");
+        TestProbe<Pong> probe = testKit.createTestProbe();
+        pinger1.tell(new Ping("hi", probe.ref()));
+        probe.expectMessage(new Pong("hi"));
+        testKit.stop(pinger1);
+
+        ActorRef<Ping> pinger2 = testKit.spawn(Echo.create(), "pinger");
+        pinger2.tell(new Ping("hello", probe.ref()));
+        probe.expectMessage(new Pong("hello"));
+        testKit.stop(pinger2);
+    }
 }
