@@ -1,5 +1,7 @@
 package com.dliu.akka.typed.cqrs;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.slf4j.Logger;
 
 import akka.actor.typed.ActorRef;
@@ -128,6 +130,11 @@ public class Ledger extends EventSourcedBehaviorWithEnforcedReplies<Ledger.Comma
     }
 
     // Events
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+    @JsonSubTypes({
+            @JsonSubTypes.Type(value = Debited.class, name = "debited"),
+            @JsonSubTypes.Type(value = Credited.class, name = "credited")
+    })
     public interface Event extends JsonSerializable {
     }
 
