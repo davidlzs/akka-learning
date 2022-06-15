@@ -30,7 +30,7 @@ public class Main {
         // Testing the event souring actor
         Thread.sleep(2000); // waiting for the shard started
 
-        //testSendCommandToShoppingCart(shoppingSystem);
+        testSendCommandToShoppingCart(shoppingSystem);
     }
 
     private static void testSendCommandToShoppingCart(ActorSystem<Void> shoppingSystem) throws InterruptedException {
@@ -66,7 +66,11 @@ public class Main {
         }, Duration.ofSeconds(5));
         result.whenComplete((confirmation, error) -> {
             if (error == null) {
-                LOGGER.info("Confirmation is : {} in {} ms", confirmation, (System.currentTimeMillis() - start.get(start.size() - 1)));
+                if (confirmation.isSuccess()) {
+                    LOGGER.info("Confirmation is : {} in {} ms", confirmation, (System.currentTimeMillis() - start.get(start.size() - 1)));
+                } else {
+                    LOGGER.error("Error message is : {} in {} ms", confirmation.getError().getMessage(), (System.currentTimeMillis() - start.get(start.size() - 1)));
+                }
             } else {
                 LOGGER.error("Error is: {} in {} ms", error, (System.currentTimeMillis() - start.get(start.size() -1)));
             }
