@@ -1,6 +1,7 @@
 package com.dliu.akka.typed.cqrs;
 
 import akka.actor.typed.ActorRef;
+import akka.cluster.typed.Cluster;
 import akka.pattern.StatusReply;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -31,6 +32,11 @@ public class Main {
         Thread.sleep(2000); // waiting for the shard started
 
         testSendCommandToShoppingCart(shoppingSystem);
+        getClusterState(shoppingSystem);
+    }
+
+    private static void getClusterState(ActorSystem<?> system) {
+        LOGGER.info("Cluster state: {}", Cluster.get(system).state());
     }
 
     private static void testSendCommandToShoppingCart(ActorSystem<Void> shoppingSystem) throws InterruptedException {
