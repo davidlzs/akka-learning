@@ -3,7 +3,6 @@ package com.dliu.akka.typed.cqrs;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.pubsub.Topic;
-import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.typed.Cluster;
 import akka.pattern.StatusReply;
 import com.typesafe.config.Config;
@@ -40,16 +39,18 @@ public class Main {
     }
 
     private static void testDistributedPubSub() {
-        ActorRef<Message> subscriberActor = Guardian.getSubscriber();
+        DistributedPubSub pubSub = DistributedPubSub.getInstance();
+        ActorRef<Message> subscriberActor = pubSub.getSubscriber();
         // subscribe
-        Guardian.getAdminTopic().tell(Topic.subscribe(subscriberActor));
+        pubSub.getAdminTopic().tell(Topic.subscribe(subscriberActor));
+        // TODO: does this sleep to wait for subscription done needed? is there a race between the subscription and the first message published?
         try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         // publish
-        Guardian.getAdminTopic().tell(Topic.publish(new Message("Close circuit")));
+        pubSub.getAdminTopic().tell(Topic.publish(new Message("Close circuit")));
     }
 
     private static void getClusterState(ActorSystem<?> system) {
