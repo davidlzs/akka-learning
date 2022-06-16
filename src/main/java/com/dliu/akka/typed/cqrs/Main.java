@@ -1,6 +1,9 @@
 package com.dliu.akka.typed.cqrs;
 
 import akka.actor.typed.ActorRef;
+import akka.actor.typed.Behavior;
+import akka.actor.typed.pubsub.Topic;
+import akka.cluster.pubsub.DistributedPubSub;
 import akka.cluster.typed.Cluster;
 import akka.pattern.StatusReply;
 import com.typesafe.config.Config;
@@ -25,14 +28,28 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         Config config = ConfigFactory.load("cqrs-shoppingcart.conf");
-        ActorSystem<Void> shoppingSystem = ActorSystem.create(Guardian.create(), "dliuShopping", config);
-        LOGGER = shoppingSystem.log();
+        ActorSystem<Void> system = ActorSystem.create(Guardian.create(), "dliuShopping", config);
+        LOGGER = system.log();
 
         // Testing the event souring actor
         Thread.sleep(2000); // waiting for the shard started
 
-        testSendCommandToShoppingCart(shoppingSystem);
-        getClusterState(shoppingSystem);
+        testSendCommandToShoppingCart(system);
+        getClusterState(system);
+        testDistributedPubSub();
+    }
+
+    private static void testDistributedPubSub() {
+        ActorRef<Message> subscriberActor = Guardian.getSubscriber();
+        // subscribe
+        Guardian.getAdminTopic().tell(Topic.subscribe(subscriberActor));
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        // publish
+        Guardian.getAdminTopic().tell(Topic.publish(new Message("Close circuit")));
     }
 
     private static void getClusterState(ActorSystem<?> system) {
