@@ -42,6 +42,16 @@ public class Ledger extends EventSourcedBehaviorWithEnforcedReplies<Ledger.Comma
         logger.info("Simulated PostStart... the constructor is called from Behaviors.setup");
     }
 
+    @Override
+    public String journalPluginId() {
+        return "ledger-cassandra-plugin.journal";
+    }
+
+    @Override
+    public String snapshotPluginId() {
+        return "ledger-cassandra-plugin.snapshot";
+    }
+
     public static Behavior<Command> create(String ledgerName) {
         return Behaviors.setup(ctx -> new Ledger(ledgerName, ctx));
     }
