@@ -10,7 +10,8 @@ public class Guardian {
             // init sharding
             WeatherStation.initSharding(ctx.getSystem());
             // start http server
-            ctx.getLog().info("needs to start http server on port: {}", httpPort);
+            WeatherRoutes routes = new WeatherRoutes(ctx.getSystem());
+            WeatherHttpServer.start(routes.weather(), httpPort, ctx.getSystem());
             return Behaviors.empty();
         });
     }
