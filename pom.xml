@@ -14,7 +14,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <scala.binary.version>2.12</scala.binary.version>
-        <akka.version>2.6.10</akka.version>
+        <akka.version>2.6.19</akka.version>
         <akka.http.version>10.1.12</akka.http.version>
         <akka.grpc.version>1.0.0</akka.grpc.version>
         <akka-persistence-cassandra.version>1.0.5</akka-persistence-cassandra.version>
